@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="play_grid.js"></script>
+<script type="text/javascript" src="block.js"></script>
+<script type="text/javascript" src="pieces.js"></script>
+<script type="text/javascript" src="tetris.js"></script>
+<link href="style.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body onLoad="LoadCanvas()" onresize="Resize()" onKeyDown="KeyDown(event)">
+
+<canvas id="myCanvas">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+<canvas id="nextPiece" style="position:absolute; border-style:none;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+<span id="spScore">Score: <span id="lblScore" style="text-align:right;">0</span></span>
+<span id="spRand" class="options"><input id="chkRandCols" type="checkbox" value="Random" />Random Colors</span>
+<span id="spGrad" class="options"><input id="chkGradCols" type="checkbox" value="Gradient" checked="checked"/>Gradient Colors</span>
+<button id="btnReset" onclick="OnResetClick()" class="options" >Reset</button>
+</body>
+</html>
