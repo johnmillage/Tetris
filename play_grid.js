@@ -61,9 +61,11 @@ play_grid.prototype.ClearRow = function(row)
 play_grid.prototype.FillRow = function (row, color, grad) {
     if (row >= 0 && row < this.Height) {
         var ctx = this.Canvas.getContext("2d");
+        var rH = this.Grid[row][this.Width - 1].Height;
+        var rW = this.Grid[row][this.Width - 1].Left + this.Grid[row][this.Width - 1].Width;
+
         if (grad == true) {
-            var rH = this.Grid[row][this.Width - 1].Height;
-            var rW = this.Grid[row][this.Width - 1].Left + this.Grid[row][this.Width - 1].Width;
+           
             var lMid = this.Grid[row][0].Left + ( rW / 2);
             var tMid = this.Grid[row][0].Top + (rH / 2);
             var grd = ctx.createRadialGradient(lMid, tMid , (rW / 8), lMid, tMid, (rW / 1.75) );
@@ -77,9 +79,7 @@ play_grid.prototype.FillRow = function (row, color, grad) {
             ctx.fillStyle = color;
         }
         
-        ctx.fillRect(this.Grid[row][0].Left , this.Grid[row][0].Top ,
-                this.Grid[row][this.Width - 1].Left + this.Grid[row][this.Width - 1].Width + 1,
-                this.Grid[row][this.Width - 1].Height + 1);
+        ctx.fillRect(this.Grid[row][0].Left , this.Grid[row][0].Top , rW + 1, rH + 1);
     }
 }
 

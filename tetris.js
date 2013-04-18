@@ -15,6 +15,11 @@ var nextCol;
 var nextGrad;
 var timerInc;
 var level = 1;
+var mouseX;
+var mouseY;
+var endmouseX;
+var endmouseY;
+var touchMode = false;
 
 function LoadCanvas()
 {
@@ -75,6 +80,10 @@ function LoadCanvas()
 	timer = setInterval(MovePieceDown, timerInc);
 }
 
+function debugPrint(msg) {
+    document.getElementById("lblScore").innerHTML = msg;
+}
+
 function KeyDown(e)
 {
     if(e.keyCode == 32)  //space
@@ -93,6 +102,77 @@ function KeyDown(e)
     {
         MovePieceDown();
     }
+}
+
+function OnCanvasMouseDown(event) {
+    if (touchMode == true)
+        return;
+    event.preventDefault();
+    mouseX = event.screenX;
+    mouseY = event.screenY;
+}
+
+function OnTouchStart(event) {
+    touchMode = true;
+    mouseX = event.touches[event.touches.length - 1].clientX;
+    mouseY = event.touches[event.touches.length - 1].clientY;
+    endmouseX = mouseX;
+    endmouseY = mouseY;
+}
+
+function OnTouchMove(event) {
+    touchMode = true;
+    event.preventDefault();
+    endmouseX = event.touches[event.touches.length - 1].clientX;
+    endmouseY = event.touches[event.touches.length - 1].clientY;
+}
+
+function HandleEndMouse(curX, curY) {
+    var difX = mouseX - curX;
+    var difY = mouseY - curY;
+
+    var right = false;
+    var down = false;
+
+    if (difX < 0) {
+        difX *= -1;
+        right = true;
+    }
+
+    if (difY < 0) {
+        difY *= -1;
+        down = true;
+    }
+
+    if (difX <= 10 && difY <= 10) {
+        RotatePiece();
+    }
+    else if (difX > difY) {
+        if (right == true) {
+            MovePieceRight();
+        }
+        else {
+            MovePieceLeft();
+        }
+    }
+    else if (down == true) {
+        MovePieceDown();
+    }
+}
+
+function OnTouchEnd(event) {
+    HandleEndMouse(endmouseX, endmouseY);
+
+}
+
+function OnCanvasMouseUp(event) {
+    if (touchMode == true)
+        return;
+    event.preventDefault = true;
+    var curX = event.screenX;
+    var curY = event.screenY;
+    HandleEndMouse(curX, curY);
+   
 }
 
 function OnResetClick() {
@@ -218,7 +298,7 @@ function GetNextPiece()
 
     var grad = document.getElementById("chkGradCols").checked;
 
-    if (Math.floor((Math.random() * 20)) == 18) {
+    if (Math.floor((Math.random() * 20)) > 5) {
         num = 8;
     }
 

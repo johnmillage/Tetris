@@ -12,15 +12,15 @@ Block.prototype.Draw = function()
     var ctx = this.Grid.Canvas.getContext("2d");
     var cell = this.Grid.GetCell(this.Row, this.Col);
     if (this.Gradient == true) {
-        var grd = ctx.createRadialGradient(cell.Left + (cell.Width / 2), cell.Top + (cell.Height / 2), (cell.Height / 8), cell.Left + (cell.Width / 2), cell.Top + (cell.Height / 2), (cell.Height / 2) * 2);
+        var hW = cell.Width / 2;
+        var hH = cell.Height / 2;
+        var grd = ctx.createRadialGradient(cell.Left + hW, cell.Top + hH, (cell.Height / 8), cell.Left + hW, cell.Top + hH, hH * 2);
         grd.addColorStop(0, this.Color);
         grd.addColorStop(1, "Black");
-
         // Fill with gradient
         ctx.fillStyle = grd;
     }
     else {
-
         ctx.fillStyle = this.Color;
     }
 	
@@ -46,10 +46,11 @@ BombBlock.prototype.Draw = function ()
 {
     var ctx = this.Grid.Canvas.getContext("2d");
     var cell = this.Grid.GetCell(this.Row, this.Col);
-
+    var hW = cell.Width / 2;
+    var hH = cell.Height / 2;
     if (this.Gradient == true) {
-        var grd = ctx.createRadialGradient(cell.Left + (cell.Width / 2), cell.Top + (cell.Height * .1) + (cell.Height / 2),
-        (cell.Height / 7), cell.Left + (cell.Width / 2), cell.Top + (cell.Height * .15) + (cell.Height / 2), cell.Height / 2);
+        var grd = ctx.createRadialGradient(cell.Left + hW, cell.Top + (cell.Height * .1) + hH,
+        (cell.Height / 7), cell.Left + hW, cell.Top + (cell.Height * .15) + hH, hH);
         grd.addColorStop(0, "Black");
         grd.addColorStop(1, "White");
 
@@ -65,21 +66,21 @@ BombBlock.prototype.Draw = function ()
     
     ctx.strokeStyle = "White";
     ctx.beginPath();
-    ctx.arc(cell.Left + (cell.Width / 2), (cell.Top + (cell.Height * .15)) + (cell.Height / 2), ((cell.Height * .6) / 2), 0, 2 * Math.PI);
+    ctx.arc(cell.Left + hW, (cell.Top + (cell.Height * .15)) + hH, ((cell.Height * .6) / 2), 0, 2 * Math.PI);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(cell.Left + (cell.Width / 2), (cell.Top + (cell.Height * .15)) + (cell.Height / 2) + 1, ((cell.Height * .6) / 2) + 1, 0, 2 * Math.PI);
+    ctx.arc(cell.Left + hW, (cell.Top + (cell.Height * .15)) + hH + 1, ((cell.Height * .6) / 2) + 1, 0, 2 * Math.PI);
     ctx.stroke();
     
     ctx.lineWidth = (cell.Width / 10);//10 percent of width
     ctx.beginPath();
-    ctx.moveTo(cell.Left + (cell.Width / 2), (cell.Top + (cell.Height * .35)));
-    ctx.lineTo(cell.Left + (cell.Width / 2), cell.Top + (cell.Height * .1));
+    ctx.moveTo(cell.Left + hW, (cell.Top + (cell.Height * .35)));
+    ctx.lineTo(cell.Left + hW, cell.Top + (cell.Height * .1));
     ctx.stroke();
     ctx.beginPath();
     ctx.strokeStyle = "#FF0000";
-    ctx.moveTo(cell.Left + (cell.Width / 2), cell.Top + (cell.Height * .1));
-    ctx.lineTo(cell.Left + (cell.Width / 2), cell.Top + 1);
+    ctx.moveTo(cell.Left + hW, cell.Top + (cell.Height * .1));
+    ctx.lineTo(cell.Left + hW, cell.Top + 1);
     ctx.stroke();
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 1;
