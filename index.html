@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Millage Tetris</title>
 <script type="text/javascript" src="play_grid.js"></script>
 <script type="text/javascript" src="block.js"></script>
@@ -9,12 +10,12 @@
 <link href="style.css" rel="stylesheet" type="text/css" />
 
 </head>
-<body onLoad="LoadCanvas()" onresize="Resize()" onKeyDown="KeyDown(event)" ontouchstart="OnTouchStart(event)" ontouchmove="OnTouchMove(event)" ontouchend="OnTouchEnd(event)" onmousedown="OnCanvasMouseDown(event)" onmouseup="OnCanvasMouseUp(event)">
+<body onload="LoadCanvas()" onresize="Resize()" onkeydown="KeyDown(event)" ontouchstart="OnTouchStart(event)" ontouchmove="OnTouchMove(event)" ontouchend="OnTouchEnd(event)" onmousedown="OnCanvasMouseDown(event)" onmouseup="OnCanvasMouseUp(event)">
 
 <canvas id="myCanvas" >
 Your browser does not support the HTML5 canvas tag.
 </canvas>
-<canvas id="nextPiece" style="position:absolute; border-style:none;">
+<canvas id="nextPiece" style="position:absolute; border-style:none;" >
 Your browser does not support the HTML5 canvas tag.
 </canvas>
 <span id="spScore">Score: <span id="lblScore" style="text-align:right;">0</span></span>
