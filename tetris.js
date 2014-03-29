@@ -3,6 +3,7 @@ var grid;
 var nextGrid;
 var direction = 1;
 var boardFill = new Array();
+var oppFill = new Array();
 var timer;
 var colorAr = new Array();
 var removes = new Array();
@@ -20,11 +21,20 @@ var mouseY;
 var endmouseX;
 var endmouseY;
 var touchMode = false;
+var ws;
+var oppGrid;
+var oppPlayer;
+var isPlaying = false;
+var oppScore = 0;
+var oppPlaying = false;
+
 
 function LoadCanvas()
 {
     var c = document.getElementById("myCanvas");
     var np = document.getElementById("nextPiece");
+    var opp = document.getElementById("oppCanvas");
+    c.focus();
     //standard colors
     colorAr[1] = "#00FFFF";
     colorAr[2] = "#FF0000";
@@ -42,11 +52,19 @@ function LoadCanvas()
 
     grid = new play_grid(c);
     nextGrid = new play_grid(np, 4, 4);
+    oppGrid = new play_grid(opp);
 
     for (i = 0; i < grid.Height; i++) {
         boardFill[i] = new Array();
         for (j = 0; j < grid.Width; j++) {
             boardFill[i][j] = false;
+        }
+    }
+
+    for (i = 0; i < oppGrid.Height; i++) {
+        oppFill[i] = new Array();
+        for (j = 0; j < oppGrid.Width; j++) {
+            oppFill[i][j] = false;
         }
     }
 
@@ -77,8 +95,209 @@ function LoadCanvas()
 
 	document.getElementById("lblScore").innerHTML = score.toString();
 
-	timer = setInterval(MovePieceDown, timerInc);
+
+   
+	if (ws == undefined) {
+	    ws = new WebSocket("ws://" + "www.jmillage.net" + ":" + "8080/ws");
+
+	    ws.onmessage = OnMessage;
+
+	    ws.onclose = function (evt) {
+	        alert("Connection close");
+	        ws = undefined;
+	    };
+
+	    ws.onopen = OnOpen;
+	}
 }
+
+function OnOpen(evt) {
+    document.getElementById("txtName").disabled = false;
+    document.getElementById("btnSendName").disabled = false;
+}
+
+function OnMessage(evt)
+{
+    var msg = JSON.parse(evt.data);
+
+    if (msg.type == "players_response") {
+        var cPl = document.getElementById("cboPlayers");
+        for (i = 0; i < msg.players.length; i++) {
+            var opt = document.createElement("option");
+            opt.text = msg.players[i];
+            opt.value = msg.players[i];
+            cPl.options.add(opt);
+        }
+        cPl.disabled = false;
+        document.getElementById("btnMatch").disabled = false;
+    }
+    else if (msg.type == "new_player") {
+        var cPl = document.getElementById("cboPlayers");
+        var opt = document.createElement("option");
+        opt.text = msg.player;
+        opt.value = msg.player;
+        cPl.options.add(opt);
+    }
+    else if (msg.type == "player_left") {
+        var cPl = document.getElementById("cboPlayers");
+        for (i = 0; i < cPl.options.length; i++) {
+            if (cPl.options[i].value == msg.player) {
+                cPl.options.remove(cPl.options[i]);
+                break;
+            }
+        }
+    }
+    else if (msg.type == "set_name_response") {
+        if (msg.data = "OK") {
+            var outmsg = new Object();
+            outmsg.type = "get_players";
+            ws.send(JSON.stringify(outmsg));
+            document.getElementById("spPlayer").style.visibility = "hidden";
+            document.getElementById("spComp").style.visibility = "visible";
+        }
+        else {
+            alert("That name is already taken by another user");
+            document.getElementById("btnSendName").disabled = false;
+            document.getElementById("txtName").disabled = false;
+        }
+    }
+    else if (msg.type == "connect_player_request") {
+        var outmsg = new Object();
+        outmsg.type = "connect_player_response";
+        if (confirm("Player " + msg.player + " would like to play.  Connect?")) {
+            outmsg.answer = "yes";
+            document.getElementById("cboPlayers").disabled = true;
+            document.getElementById("btnMatch").disabled = true;
+            OnResetClick();
+            document.getElementById("spOppScore").style.visibility = "visible";
+            document.getElementById("oppCanvas").style.visibility = "visible";
+            document.getElementById("btnReset").disabled = true;
+            oppPlayer = msg.player;
+        }
+        else {
+            outmsg.answer = "no";
+        }
+        ws.send(JSON.stringify(outmsg));
+    }
+    else if (msg.type == "connect_player_response") {
+        if (msg.answer == "yes") {
+            OnResetClick();
+            document.getElementById("spOppScore").style.visibility = "visible";
+            document.getElementById("oppCanvas").style.visibility = "visible";
+            document.getElementById("btnReset").disabled = true;
+        }
+        else {
+            alert("Player refused request");
+            document.getElementById("cboPlayers").disabled = false;
+            document.getElementById("btnMatch").disabled = false;
+            
+            oppPlayer = undefined;
+        }
+    }
+    else if (msg.type == "game_data") {
+        oppBoard = msg.data;
+        for (i = 0; i < oppBoard.length; i++) {
+            for (j = 0; j < oppBoard[i].length; j++) {
+                if (oppBoard[i][j] != 0) {
+                    if (oppFill[i][j] == false) {
+                        if (oppBoard[i][j] == "#000000") {
+                            oppFill[i][j] = new BombBlock(oppBoard[i][j], i, j, oppGrid, false);
+                        }
+                        else {
+                            oppFill[i][j] = new Block(oppBoard[i][j], i, j, oppGrid, false);
+                        }
+                        oppFill[i][j].Draw();
+                    }
+                }
+                else {
+                    if (oppFill[i][j] != false) {
+                        oppFill[i][j].Clear();
+                        oppFill[i][j] = false;
+                    }
+                }
+            }
+        }
+        oppScore = msg.score;
+        oppPlaying = msg.playing;
+        var othScore = oppScore.toString();
+        if (oppPlaying == false) {
+            othScore += " Done";
+            if (isPlaying == false) {  //let them play again now if they want
+                if (score > oppScore) {
+                    document.getElementById("lblScore").innerHTML += " WIN";
+                }
+                else {
+                    document.getElementById("lblScore").innerHTML += " LOSE";
+                }
+                document.getElementById("cboPlayers").disabled = false;
+                document.getElementById("btnMatch").disabled = false;
+                document.getElementById("btnReset").disabled = false;
+                oppPlayer = undefined;
+                msg = new Object();
+                msg.type = "game_over";
+                ws.send(JSON.stringify(msg));
+            }
+        }
+        document.getElementById("lblOppScore").innerHTML = othScore;
+    }
+
+}
+
+function OnSendName() {
+    var n = document.getElementById("txtName");
+    if (n.value != undefined && n.value != "") {
+        msg = new Object();
+        msg.type = "set_name";
+        msg.name = n.value;
+        ws.send(JSON.stringify(msg));
+        n.disabled = true;
+        document.getElementById("btnSendName").disabled = true;
+    }
+}
+
+function OnMatchClick() {
+    var p = document.getElementById("cboPlayers");
+    if (p.value != undefined && p.value != "") {
+        msg = new Object();
+        msg.type = "connect_player";
+        msg.player = p.value;
+        ws.send(JSON.stringify(msg));
+        oppPlayer = msg.player;
+        p.disabled = true;
+        document.getElementById("btnMatch").disabled = true;
+    }
+}
+
+function SendGameData() {
+    var msg = new Object();
+    msg.type = "game_data";
+    msg.data = new Array();
+    for (i = 0; i < grid.Height; i++) {
+        msg.data[i] = new Array();
+        for (j = 0; j < grid.Width; j++) {
+            if(boardFill[i][j] == false)
+            {
+                msg.data[i][j] = 0;
+            }
+            else
+            {
+                msg.data[i][j] = boardFill[i][j].Color;
+            }
+        }
+    }
+    msg.score = score;
+    msg.playing = isPlaying;
+
+    if (current != undefined) {
+        for (i = 0; i < current.Blocks.length; i++) {
+            msg.data[current.Blocks[i].Row][current.Blocks[i].Col] = current.Blocks[i].Color;
+        }
+    }
+
+    ws.send(JSON.stringify(msg));
+}
+
+
 
 function debugPrint(msg) {
     document.getElementById("lblScore").innerHTML = msg;
@@ -86,33 +305,45 @@ function debugPrint(msg) {
 
 function KeyDown(e)
 {
+    if (isPlaying == false)
+        return;
+
     if(e.keyCode == 32)  //space
     {
         RotatePiece();
+        e.preventDefault();
     }
     else if(e.keyCode == 37)  //left
     {
         MovePieceLeft();
+        e.preventDefault();
     }
     else if(e.keyCode == 39) //right
     {
         MovePieceRight();
+        e.preventDefault();
     }
     else if(e.keyCode == 40) //down
     {
         MovePieceDown();
+        e.preventDefault();
     }
 }
 
 function OnCanvasMouseDown(event) {
+    if (isPlaying == false)
+        return;
+
     if (touchMode == true)
         return;
-    event.preventDefault();
+    //event.preventDefault();
     mouseX = event.screenX;
     mouseY = event.screenY;
 }
 
 function OnTouchStart(event) {
+    if (isPlaying == false)
+        return;
     touchMode = true;
     mouseX = event.touches[event.touches.length - 1].clientX;
     mouseY = event.touches[event.touches.length - 1].clientY;
@@ -121,6 +352,8 @@ function OnTouchStart(event) {
 }
 
 function OnTouchMove(event) {
+    if (isPlaying == false)
+        return;
     touchMode = true;
     event.preventDefault();
     endmouseX = event.touches[event.touches.length - 1].clientX;
@@ -128,6 +361,8 @@ function OnTouchMove(event) {
 }
 
 function HandleEndMouse(curX, curY) {
+    if (isPlaying == false)
+        return;
     var difX = mouseX - curX;
     var difY = mouseY - curY;
 
@@ -161,14 +396,19 @@ function HandleEndMouse(curX, curY) {
 }
 
 function OnTouchEnd(event) {
+    if (isPlaying == false)
+        return;
     HandleEndMouse(endmouseX, endmouseY);
 
 }
 
 function OnCanvasMouseUp(event) {
+    if (isPlaying == false)
+        return;
+
     if (touchMode == true)
         return;
-    event.preventDefault = true;
+    //event.preventDefault = true;
     var curX = event.screenX;
     var curY = event.screenY;
     HandleEndMouse(curX, curY);
@@ -177,13 +417,24 @@ function OnCanvasMouseUp(event) {
 
 function OnResetClick() {
 
-    if (timer != undefined) {
+    if (timer == undefined) {
+        isPlaying = true;
+        timer = setInterval(MovePieceDown, timerInc);
+        document.getElementById("btnReset").innerHTML = "Stop";
+    }
+    else {
+        isPlaying = false;
         clearInterval(timer);
         timer = undefined;
+        document.getElementById("btnReset").innerHTML = "Start";
+        timerInc = 500
     }
     grid.ClearGrid();
 
     LoadCanvas();
+
+    document.getElementById("spOppScore").style.visibility = "hidden";
+    document.getElementById("oppCanvas").style.visibility = "hidden";
 }
 
 
@@ -192,7 +443,8 @@ function Resize()
 {
     var c = document.getElementById("myCanvas");
     var np = document.getElementById("nextPiece");
-    c.height=window.innerHeight - 50;
+    var opp = document.getElementById("oppCanvas");
+    c.height = window.innerHeight - 50;
     c.width = c.height / 2;
 
     var sc = document.getElementById("spScore");
@@ -205,6 +457,11 @@ function Resize()
     np.width = np.height;
 
 
+    opp.style.top = (50 + np.height + 25).toString() + "px";
+    opp.style.left = (c.width + 20).toString() + "px";
+    opp.width = 196;
+    opp.height = opp.width * 2;
+
     grid.SetupCells();
     nextGrid.SetupCells();
     RedrawBoard();
@@ -215,12 +472,15 @@ function Resize()
         current.Draw();
     }
     
+    var oppScore = document.getElementById("spOppScore");
+    oppScore.style.left = sc.style.left;
+    oppScore.width = 196;
+    oppScore.style.top = (50 + np.height).toString() + "px";
 
-
-    var rand = document.getElementById("spRand");
+    var rand = document.getElementById("spPlayer");
     rand.style.left = sc.style.left;
-    rand.style.top = (c.height - 150).toString() + "px";
-    var grad = document.getElementById("spGrad");
+    rand.style.top = (c.height - 100).toString() + "px";
+    var grad = document.getElementById("spComp");
     grad.style.left = rand.style.left;
     grad.style.top = (c.height - 100).toString() + "px";
     var res = document.getElementById("btnReset");
@@ -238,6 +498,11 @@ function RedrawBoard()
             if(boardFill[i][j] != false)
             {
                 boardFill[i][j].Draw();
+            }
+
+            if (oppFill[i][j] != false)
+            {
+                oppFill[i][j].Draw();
             }
         }
     }
@@ -298,8 +563,9 @@ function GetNextPiece()
 
     var grad = document.getElementById("chkGradCols").checked;
 
-    if (Math.floor((Math.random() * 20)) > 5) {
+    if (Math.floor((Math.random() * 20)) > 10) {
         num = 8;
+        col = "#000000";
     }
 
     var retPeice;
@@ -559,6 +825,10 @@ function MovePieceDown()
             SwitchToNextPiece();
         }
     }
+
+    if (oppPlayer != undefined) {
+        SendGameData();
+    }
 }
 
 function SwitchToNextPiece()
@@ -567,8 +837,32 @@ function SwitchToNextPiece()
     
     if(current != undefined && current.Row == 0)  //end game
     {
+        isPlaying = false;
         clearInterval(timer);
         timer = undefined;
+        document.getElementById("btnReset").innerHTML = "Start";
+        timerInc = 500
+
+        if (oppPlayer != undefined) {
+            if (oppPlaying == false) {
+                if (score >= oppScore) {
+                    document.getElementById("lblScore").innerHTML += " WIN";
+                }
+                else {
+                    document.getElementById("lblScore").innerHTML += " LOSE";
+                }
+                document.getElementById("btnReset").disabled = false;
+                oppPlayer = undefined;
+                document.getElementById("cboPlayers").disabled = false;
+                document.getElementById("btnMatch").disabled = false;
+                SendGameData();
+                msg = new Object();
+                msg.type = "game_over";
+                ws.send(JSON.stringify(msg));
+            }
+            
+            
+        }
     }
     else
     {

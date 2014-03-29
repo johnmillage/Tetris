@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -18,9 +18,15 @@ Your browser does not support the HTML5 canvas tag.
 <canvas id="nextPiece" style="position:absolute; border-style:none;" >
 Your browser does not support the HTML5 canvas tag.
 </canvas>
+<canvas id="oppCanvas" style="position:absolute;visibility:hidden">
+
+</canvas>
+<span id="spPlayer" class="options"><input id="txtName" type="text" value="Your Name"  /><button id="btnSendName" onclick="OnSendName()" >Set</button></span>
+<span id="spComp" class="options" style="visibility:hidden">Players: <select id="cboPlayers"  disabled="disabled"></select><button id="btnMatch" onclick="OnMatchClick()" disabled="disabled">Match</button></span>
 <span id="spScore">Score: <span id="lblScore" style="text-align:right;">0</span></span>
-<span id="spRand" class="options"><input id="chkRandCols" type="checkbox" value="Random" />Random Colors</span>
-<span id="spGrad" class="options"><input id="chkGradCols" type="checkbox" value="Gradient" checked="checked"/>Gradient Colors</span>
-<button id="btnReset" onclick="OnResetClick()"  style="width:200px;height:50px;" class="options" >Reset</button>
+<span id="spOppScore" class="options" style="visibility:hidden; font-size:small">Score: <span id="lblOppScore" >0</span></span>
+<span id="spRand" class="options" style="visibility:hidden" ><input id="chkRandCols" type="checkbox" value="Random"  />Random Colors</span>
+<span id="spGrad" class="options" style="visibility:hidden"><input id="chkGradCols" type="checkbox" value="Gradient" checked="checked" />Gradient Colors</span>
+<button id="btnReset" onclick="OnResetClick()"  style="width:200px;height:50px;" class="options" >Start</button>
 </body>
 </html>

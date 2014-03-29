@@ -46,6 +46,7 @@ BombBlock.prototype.Draw = function ()
 {
     var ctx = this.Grid.Canvas.getContext("2d");
     var cell = this.Grid.GetCell(this.Row, this.Col);
+    this.Color = "#000000";
     var hW = cell.Width / 2;
     var hH = cell.Height / 2;
     if (this.Gradient == true) {
