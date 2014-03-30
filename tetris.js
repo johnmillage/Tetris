@@ -98,7 +98,7 @@ function LoadCanvas()
 
    
 	if (ws == undefined) {
-	    ws = new WebSocket("ws://" + "www.jmillage.net" + ":" + "8080/ws");
+	    ws = new WebSocket("ws://" + "jmillage.elasticbeanstalk.com" + ":" + "8080/ws");
 
 	    ws.onmessage = OnMessage;
 
@@ -563,7 +563,7 @@ function GetNextPiece()
 
     var grad = document.getElementById("chkGradCols").checked;
 
-    if (Math.floor((Math.random() * 20)) > 10) {
+    if (Math.floor((Math.random() * 20)) > 18) {
         num = 8;
         col = "#000000";
     }
