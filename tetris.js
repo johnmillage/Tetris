@@ -98,7 +98,7 @@ function LoadCanvas()
 
    
 	if (ws == undefined) {
-	    ws = new WebSocket("ws://" + "jmillage.elasticbeanstalk.com" + ":" + "8080/ws");
+	    ws = new WebSocket("ws://" + "20.85.212.111" + ":" + "8081/ws");
 
 	    ws.onmessage = OnMessage;
 
